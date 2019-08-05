@@ -12,7 +12,7 @@ namespace FiveMoveMurderFest
 {
     public partial class MainForm : Form
     {
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
         }
