@@ -44,6 +44,7 @@ namespace FiveMoveMurderFest
         private Bitmap place;
         int selectedUnit = -1;
         int currentUnits = 0;
+        int sQLUnit = 1;
         Unit[] units = new Unit[5];
         bool line = false;
         /// <summary>
@@ -114,10 +115,10 @@ namespace FiveMoveMurderFest
         {
             textBox1.Text = "Running";
             SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
-            builder.DataSource = "sql143.main-hosting.eu";
-            builder.UserID = "u963414567_sld1";              // update me
-            builder.Password = "g1thub";      // update me
-            builder.InitialCatalog = "u963414567_rmt";
+            builder.DataSource = "";
+            builder.UserID = "";              // update me
+            builder.Password = "";      // update me
+            builder.InitialCatalog = "";
             //possible value: u963414567_db1
 
             // Connect to SQL
@@ -128,83 +129,105 @@ namespace FiveMoveMurderFest
                 string username = "";
                 string password = "";
                 string databaseName = "";
-                textBox1.Text = "Attempting to connect";
+                textBox1.Text = "Attempting to connect to retreive unit ID "+sQLUnit;
+                Console.Write("Attempting to connect to retreive unit ID " + sQLUnit);
                 string dbConnectionString = string.Format("server={0};uid={1};pwd={2};database={3};", serverIp, username, password, databaseName);
                 using (MySql.Data.MySqlClient.MySqlConnection conn = new MySql.Data.MySqlClient.MySqlConnection(dbConnectionString))
                 {
 
-                    String sql = "SELECT ID,Name,xpos,ypos FROM peiceInfo WHERE ID=1;";
+                    String sql = ("SELECT ID,Name,xpos,ypos FROM peiceInfo WHERE ID=" + sQLUnit + ";");
+                    Console.Write("Attempting to Open");
                     conn.Open();
                     textBox1.Text = "connected";
                     var cmd = new MySql.Data.MySqlClient.MySqlCommand(sql, conn);
+                    Console.Write("Running command");
                     var reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
-                        String name = reader.GetString(1);
+
+                        String v = reader.GetString(1);
+                        Console.Write("\n Setting V as name, v is "+v);
+                        Console.Write("\n Testing V as null");
+                        if (v == null)
+                        {
+                            break;
+                        }
+                        Console.Write("\n V not null, getting values");
+                        String name = v;
+                        Console.Write("\n Getting xpos");
                         int xpos = reader.GetInt32(2);
+                        Console.Write("\n Getting ypos");
                         int ypos = reader.GetInt32(3);
-                        textBox1.Text = String.Format("{0},{1}\t{2},{3}",reader.GetInt32(0),"|"+name+".png|",xpos,ypos);
+                        Console.Write("\n Printing String with anme <"+name+">");
+                        textBox1.Text = String.Format("{0},{1}\t{2},{3}", reader.GetInt32(0), "|" + name + ".png|", xpos, ypos);
+                        //Remeber to add images to resource folder via add new item
                         if (currentUnits < units.Length)
                         {
-                            units[currentUnits] = new Unit(new Bitmap("Pictures/"+name + ".png"), xpos, ypos);
+                            Console.Write("\n Building unit with image location "+ "Pictures/" + name + ".png");
+                            units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), xpos, ypos);
                             Graphics graphics = CreateGraphics();
+                            Console.Write("\n Drawing unit");
                             graphics.DrawImage(units[currentUnits].attatchedImage, units[currentUnits].xpos, units[currentUnits].ypos);
                             graphics.Dispose();
                             currentUnits++;
                         }
+                        
                     }
+                    Console.Write("\n CLosing reader");
+                    sQLUnit++;
+                    reader.Close();
                     conn.Close();
                 }
             }
-            catch(Exception er)
+            catch (Exception er)
             {
-                Console.Write(er.Message);
+                Console.Write("\n Error:"+er.Message);
                 textBox1.Text += "Error";
             }
-                
-                
-                
-                    /* Redundent SQL code for non-mySQL
-                     * REDUNDENT
-                    Console.WriteLine("About to Open.");
-                    connection.Open();
-                    Console.WriteLine("Done.");
 
-                    // Create a sample database
-                    Console.ReadKey(true);
-                    
-                    using (SqlCommand command = new SqlCommand(sql, connection))
+
+
+            /* Redundent SQL code for non-mySQL
+             * REDUNDENT
+            Console.WriteLine("About to Open.");
+            connection.Open();
+            Console.WriteLine("Done.");
+
+            // Create a sample database
+            Console.ReadKey(true);
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
                     {
-
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                String print = reader.GetInt32(0) + " " + reader.GetString(1);
-                                textBox1.Text = print;
-                            }
-                        }
+                        String print = reader.GetInt32(0) + " " + reader.GetString(1);
+                        textBox1.Text = print;
                     }
-                    connection.Close();
                 }
             }
-            catch (Exception ev)
-            {
-                Console.Write("\nThere was an error");
-                Console.Write(ev.Message);
-                textBox1.Text=(ev.Message);
-            }
-            */
-            
+            connection.Close();
         }
-            private void PainterForm_MouseDown(object sender, MouseEventArgs e)
+    }
+    catch (Exception ev)
+    {
+        Console.Write("\nThere was an error");
+        Console.Write(ev.Message);
+        textBox1.Text=(ev.Message);
+    }
+    */
+
+        }
+        private void PainterForm_MouseDown(object sender, MouseEventArgs e)
         {
-            if(line)
+            if (line)
             {
                 bool killed = false;
                 Graphics graphics = CreateGraphics();
                 graphics.Clear(Color.White);
-                
+
                 int i = 0;
                 while (i < currentUnits)
                 {
@@ -213,7 +236,7 @@ namespace FiveMoveMurderFest
                         if ((e.X > units[i].xpos && e.X < units[i].xpos + 51) && (e.Y > units[i].ypos && e.Y < units[i].ypos + 51))
                         {
                             Random rand = new Random();
-                            units[i].attatchedImage = new Bitmap("Pictures/Corpse" + ((rand.Next(50) % 3)+1) + ".png");
+                            units[i].attatchedImage = new Bitmap("Pictures/Corpse" + ((rand.Next(50) % 3) + 1) + ".png");
                             i = 100000;
                             killed = true;
 
@@ -228,13 +251,13 @@ namespace FiveMoveMurderFest
                     {
                         i++;
                     }
-                    
+
                 }
                 if (killed == false)
                 {
                     units[selectedUnit].xpos = e.X - 25;
                     units[selectedUnit].ypos = e.Y - 25;
-                   
+
                 }
                 i = 0;
                 while (i < currentUnits)
@@ -245,15 +268,15 @@ namespace FiveMoveMurderFest
                 }
                 line = false;
                 selectedUnit = -1;
-               
+
                 graphics.Dispose();
             }
             else
             {
                 int i = 0;
-                while (i<currentUnits)
+                while (i < currentUnits)
                 {
-                    if((e.X> units[i].xpos && e.X< units[i].xpos+51) && (e.Y > units[i].ypos && e.Y < units[i].ypos + 51))
+                    if ((e.X > units[i].xpos && e.X < units[i].xpos + 51) && (e.Y > units[i].ypos && e.Y < units[i].ypos + 51))
                     {
                         selectedUnit = i;
                         line = true;
@@ -266,7 +289,7 @@ namespace FiveMoveMurderFest
                     }
                 }
             }
-            if(!line)
+            if (!line)
             {
                 shouldPaint = true;
             }
@@ -283,8 +306,8 @@ namespace FiveMoveMurderFest
             Color drawColor;
             if (shouldPaint)
             {
-                
-                
+
+
                 if (e.Button == MouseButtons.Left)
                 {
                     drawColor = Color.BlueViolet;
@@ -294,7 +317,7 @@ namespace FiveMoveMurderFest
                     drawColor = Color.Red;
                 }
                 graphics.FillEllipse(new SolidBrush(drawColor), e.X, e.Y, 4, 4);
-                
+
             }
             else
             {
@@ -303,11 +326,11 @@ namespace FiveMoveMurderFest
                     drawColor = Color.Red;
                     graphics.Clear(Color.White);
                     int i = 0;
-                    while (i<currentUnits)
+                    while (i < currentUnits)
                     {
                         graphics.DrawImage(units[i].attatchedImage, units[i].xpos, units[i].ypos);
                         i++;
-                        
+
                     }
                     graphics.DrawLine(new Pen(drawColor), units[selectedUnit].xpos + 25, units[selectedUnit].ypos + 25, e.X, e.Y);
 
