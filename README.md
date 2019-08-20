@@ -2,15 +2,14 @@
 This app is a pot of a homebrew RPG system.
 It is primarily combat-based, however I plan for campaign managment tools to be added.
 
-#Features(Planned)
+# Features(Planned)
 
 *Rudimentry A.I for NPC characters*
-
 *Players declear a move/action for a character. Other side declears counter action, to which non-moved friendlies may again counter-move*
 *ect. ect. All actioning characters roll inititave then perform their actions in initave order ,regardless of wheter it can be done by then*
 *(E.G shooting at unit 'x' when unit x already shot by unit 'y' in same turn)*
 
-#Skills developing
+# Skills developing
 
 I plan on this project improving my skills in the following:
 
