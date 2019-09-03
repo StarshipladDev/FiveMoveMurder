@@ -1,5 +1,5 @@
 # FiveMoveMurderFest
-This app is a pot of a homebrew RPG system.
+This app is a port of a homebrew RPG system (http://www.starshiplad.com/FMMF.pdf) .
 It is primarily combat-based, however I plan for campaign managment tools to be added.
 
 # Features(Planned)
