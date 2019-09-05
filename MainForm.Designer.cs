@@ -22,6 +22,12 @@ namespace FiveMoveMurderFest
             get { return accvar; }
             set { accvar = value; }
         }
+        private bool actedVar;
+        public bool acted
+        {
+            get { return actedVar; }
+            set { actedVar = value; }
+        }
         private bool deadvar;
         public bool dead
         {
@@ -45,6 +51,7 @@ namespace FiveMoveMurderFest
         {
             this.acc = 50;
             this.dead = false;
+            this.acted = false;
             this.attatchedImage = image;
             this.xpos = x;
             this.ypos = y;
@@ -55,6 +62,11 @@ namespace FiveMoveMurderFest
     #endregion
     partial class MainForm
     {
+
+
+        Random rand = new Random();
+        private int windowHeight = 450;
+        private int windowLength = 800;
         static private int maxUnits = 5;
         private Button button1;
         private Button button2;
@@ -62,7 +74,9 @@ namespace FiveMoveMurderFest
         private Bitmap place;
         String[] moveCommands = new String[maxUnits];
         int[] moveOrder = new int[maxUnits];
+        int[] lineDraw = new int[maxUnits * 4];
         int selectedUnit = -1;
+        int[] gridTypeDownRight= new int[9] { 1,1,0,0,0,0,1,2,1};
         int currentUnits = 0;
         int sQLUnit = 1;
         int actingUnit = 0;
@@ -133,7 +147,7 @@ namespace FiveMoveMurderFest
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(windowLength,windowHeight);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.button2);
@@ -228,20 +242,22 @@ namespace FiveMoveMurderFest
             if (line)
             {
                 bool killed = false;
-                
-
+                lineDraw[actingUnit * 4] =units[selectedUnit].xpos + 25;
+                lineDraw[(actingUnit * 4)+1] = units[selectedUnit].ypos + 25;
+                lineDraw[(actingUnit * 4) + 2] = e.X;
+                lineDraw[(actingUnit * 4) + 3] = e.Y;
+                Console.Write("\n Set Values as " + lineDraw[actingUnit * 4] + " " + lineDraw[(actingUnit * 4) + 1] + " " + lineDraw[(actingUnit * 4) + 2] + " " + lineDraw[(actingUnit * 4) + 3]);
                 int i = 0;
                 while (i < currentUnits)
                 {
+                    
                     if (i != selectedUnit)
                     {
                         if ((e.X > units[i].xpos && e.X < units[i].xpos + 51) && (e.Y > units[i].ypos && e.Y < units[i].ypos + 51))
                         {
                             Console.Write("\n moveCommands=" + "K" + moveCommands[actingUnit].Substring(1, 1) + i + "\n");
                             moveCommands[actingUnit] = ("K" + moveCommands[actingUnit].Substring(1,1)+ i);
-                            actingUnit++;
                             killed = true;
-
                             i = 100000;
                             /*
                              * Kill code
@@ -266,28 +282,40 @@ namespace FiveMoveMurderFest
 
                     Console.Write("\n moveCommands=" + moveCommands[actingUnit] + e.X.ToString("D4") + e.Y.ToString("D4") +"\n");
                     moveCommands[actingUnit] = (moveCommands[actingUnit]+e.X.ToString("D4")+e.Y.ToString("D4"));
-                    actingUnit++;
+                    
                     /*MOVE CODE
                     */
 
                 }
+                actingUnit++;
                 line = false;
                 selectedUnit = -1;
+
             }
             else
             {
                 int i = 0;
                 while (i < currentUnits)
                 {
+                    Console.Write("\n \n Mouse x,y " + e.X + " " + e.Y + " , unit coords " + units[i].xpos + " " + units[i].ypos );
                     if ((e.X > units[i].xpos && e.X < units[i].xpos + 51) && (e.Y > units[i].ypos && e.Y < units[i].ypos + 51))
                     {
-                        selectedUnit = i;
-                        line = true;
-                        moveCommands[actingUnit] = ("M" + i);
-                        moveOrder[actingUnit] = i;
-                        Console.Write("\n MoveOrder[" + actingUnit + "] Set to " + i);
-                       Console.Write("\n moveCommands=" + "M" + i +"\n");
+                        Console.Write("Unit "+i+ " is selected and acted is " +units[i].acted+"\n \n");
+                        if (units[i].acted == false)
+                        {
+                            selectedUnit = i;
+                            Console.Write("Unit " + i + " acted " + units[i].acted);
+                            units[i].acted = true;
+                            Console.Write("Unit " + i + " changed, acted is " + units[i].acted + "\n \n");
+                            line = true;
+                            moveCommands[actingUnit] = ("M" + i);
+                            moveOrder[actingUnit] = i;
+                            Console.Write("\n MoveOrder[" + actingUnit + "] Set to " + i);
+                            Console.Write("\n moveCommands=" + "M" + i + "\n");
+                            
+                        }
                         i = 100000;
+
                     }
                     else
                     {
@@ -330,16 +358,56 @@ namespace FiveMoveMurderFest
             {
                 if (line)
                 {
+                   
                     drawColor = Color.Red;
                     graphics.Clear(Color.White);
+                    /* 
+                    *DRAW TERRAIN 
+                    * 
+                    */
                     int i = 0;
+                    //Ammount in a row of grid
+                    int ammount = (int)Math.Sqrt(gridTypeDownRight.Length);
+                    while (i < ammount)
+                    {
+                        int f = 0;
+                        while (f < ammount)
+                        {
+                            if (gridTypeDownRight[(i * ammount) + f] != 0)
+                            {
+                                SolidBrush brush = null;
+                                if (gridTypeDownRight[(i * ammount) + f] == 1)
+                                {
+                                    brush = new SolidBrush(Color.FromArgb(255, (Color.Brown.R + rand.Next(20) - 10) % 255, (Color.Brown.G + rand.Next(20) - 10) % 255, (Color.Brown.B + rand.Next(20) - 10) % 255));
+                                }
+                                else if (gridTypeDownRight[(i * ammount) + f] == 2)
+                                {
+                                    brush = new SolidBrush(Color.FromArgb(255, (Color.Gray.R + rand.Next(20) - 10)% 255, (Color.Gray.G + rand.Next(20) - 10) % 255, (Color.Gray.B + rand.Next(20) - 10) % 255));
+                                }
+                                graphics.FillRectangle(brush, new RectangleF(i * (windowLength / ammount), f * (windowHeight / ammount), windowLength / ammount, windowHeight / ammount));
+                            }
+                            f++;
+                        }
+                        i++;
+                    }
+                    /*
+                     * END OF DRAW TERRAIN
+                     * 
+                     */
+                    i = 0;
                     while (i < currentUnits)
                     {
                         graphics.DrawImage(units[i].attatchedImage, units[i].xpos, units[i].ypos);
                         i++;
 
                     }
+                    i = 0;
+                    while(i < actingUnit){
+                        graphics.DrawLine(new Pen(drawColor), lineDraw[i * 4], lineDraw[(i * 4) + 1], lineDraw[(i * 4) + 2], lineDraw[(i * 4) + 3]);
+                        i++;
+                    }
                     graphics.DrawLine(new Pen(drawColor), units[selectedUnit].xpos + 25, units[selectedUnit].ypos + 25, e.X, e.Y);
+                    
 
                 }
             }
@@ -352,26 +420,83 @@ namespace FiveMoveMurderFest
             Graphics graphics = CreateGraphics();
             graphics.Clear(Color.White);
             int i = 0;
+            /* 
+                     *DRAW TERRAIN 
+                     * 
+                     */
+            //Ammount in a row of grid
+            int ammount = (int)Math.Sqrt(gridTypeDownRight.Length);
+            while (i < ammount)
+            {
+                int f = 0;
+                while (f < ammount)
+                {
+                    if (gridTypeDownRight[(i * ammount) + f] != 0)
+                    {
+                        SolidBrush brush = null;
+                        if (gridTypeDownRight[(i * ammount) + f] == 1)
+                        {
+                            brush = new SolidBrush(Color.FromArgb(255, (Color.Brown.R + rand.Next(20) - 10) % 255, (Color.Brown.G + rand.Next(20) - 10) % 255, (Color.Brown.B + rand.Next(20) - 10) % 255));
+                        }
+                        else if (gridTypeDownRight[(i * ammount) + f] == 2)
+                        {
+                            brush = new SolidBrush(Color.FromArgb(255, (Color.Gray.R + rand.Next(20) - 10) % 255, (Color.Gray.G + rand.Next(20) - 10) % 255, (Color.Gray.B + rand.Next(20) - 10) % 255));
+                        }
+                        Console.Write("A,R,B " + brush.Color.R + " " + brush.Color.B + " " + brush.Color.G + " \n -------------\n");
+                        graphics.FillRectangle(brush, new RectangleF(i * (windowLength / ammount), f * (windowHeight / ammount), windowLength / ammount, windowHeight / ammount));
+                    }
+                    f++;
+                }
+                i++;
+            }
+            /*
+             * END OF DRAW TERRAIN
+             * 
+             */
+            i = 0;
             while (i < actingUnit){
                 Console.Write("MoveOrder[" + i + "] is " + moveOrder[i]);
                 if (! units[moveOrder[i]].dead)
                 {
-                    //If Move command
+
+                    /*
+                     * MOVE COMMAND
+                     */
                     if (moveCommands[i].Substring(0, 1).Equals("M"))
                     {
-                        Console.Write("Move Commands ["+i+"] is "+moveCommands[i]);
-                        Console.Write(" Moving unit " + moveOrder[i] + " to " + moveCommands[i].Substring(2, 4) + " " + moveCommands[i].Substring(6, 4) +"\n");
-                        Console.Write(" Moving unit "+moveOrder[i] +" to "+ (Int32.Parse(moveCommands[i].Substring(2, 4)) - 25) +" "+(Int32.Parse(moveCommands[i].Substring(6, 4)) - 25));
+                        Console.Write("Move Commands [" + i + "] is " + moveCommands[i]);
+                        Console.Write(" Moving unit " + moveOrder[i] + " to " + moveCommands[i].Substring(2, 4) + " " + moveCommands[i].Substring(6, 4) + "\n");
+                        Console.Write(" Moving unit " + moveOrder[i] + " to " + (Int32.Parse(moveCommands[i].Substring(2, 4)) - 25) + " " + (Int32.Parse(moveCommands[i].Substring(6, 4)) - 25));
                         units[moveOrder[i]].xpos = Int32.Parse(moveCommands[i].Substring(2, 4)) - 25;
                         units[moveOrder[i]].ypos = Int32.Parse(moveCommands[i].Substring(6, 4)) - 25;
-                        Console.Write("Unit deets are " +units[moveOrder[i]].xpos +","+ units[moveOrder[i]].ypos);
+                        Console.Write("Unit deets are " + units[moveOrder[i]].xpos + "," + units[moveOrder[i]].ypos);
                     }
-                    //If shoot command
+                    /*
+                     * SHOOT COMMAND
+                     */
                     else if (moveCommands[i].Substring(0, 1).Equals("K"))
                     {
+                        int shotChance = units[moveOrder[i]].acc + rand.Next(100);
+                        Console.Write("\n shotchance pre-terrain "+shotChance);
+                        int targetTile = 0;
+                        targetTile = units[Int32.Parse(moveCommands[i].Substring(2, 1))].xpos / (windowLength / ammount);
+                        targetTile = (ammount * targetTile) + units[Int32.Parse(moveCommands[i].Substring(2, 1))].ypos / (windowHeight / ammount);
+                        switch (gridTypeDownRight[targetTile]) {
 
-                        Random rand = new Random();
-                        if(units[moveOrder[i]].acc + rand.Next(100) > 100)
+                            case 1:
+                                shotChance -= 10;
+                                break;
+                            case 2:
+                                shotChance -= 20;
+                                break;
+
+                            default:
+                                break;
+
+                        }
+                        Console.Write("\n shotchance post-terrain " + shotChance);
+
+                        if (shotChance>100)
                         {
 
                             units[Int32.Parse(moveCommands[i].Substring(2,1))].attatchedImage = new Bitmap("Pictures/Corpse" + ((rand.Next(100) % 3) + 1) + ".png");
@@ -382,7 +507,9 @@ namespace FiveMoveMurderFest
                             Console.Write("\n Missed the shot \n");
                         }
                     }
-                    //Default error
+                    /*
+                     * DEFAULT COMMAND
+                     */
                     else
                     {
                         Console.Write("Command error");
@@ -395,15 +522,20 @@ namespace FiveMoveMurderFest
             i = 0;
             while (i < currentUnits)
             {
+                Console.Write("End of turn unit " + i + " acting");
+                units[i].acted = false;
+                Console.Write("change occured unit " + i + " acting is set to " + units[i].acted + " \n");
                 graphics.DrawImage(units[i].attatchedImage, units[i].xpos, units[i].ypos);
                 i++;
 
             }
             
+            //CLEAN UP
             graphics.Dispose();
 
             moveCommands = new String[moveCommands.Length];
             moveOrder = new int[moveOrder.Length];
+            lineDraw = new int[lineDraw.Length];
             actingUnit = 0;
         }
         #endregion
