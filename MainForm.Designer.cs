@@ -7,6 +7,8 @@ using System.Text;
 using System.IO;
 using System.Windows.Forms;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
+using System.Media;
 
 /*
  * Documentation types:
@@ -119,6 +121,7 @@ namespace FiveMoveMurderFest
         String[] moveCommands = new String[maxUnits];
         int[] moveOrder = new int[maxUnits];
         int[] lineDraw = new int[maxUnits * 4];
+        int[] audioQueue = new int[maxUnits];
         int selectedUnit = -1;
         //Terrain- gridTypeDownRight MUST be a square number
         static int[] gridTypeDownRight= new int[9] {rand.Next(6)-3, rand.Next(6) - 3, rand.Next(6) - 3,rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3};
@@ -266,7 +269,7 @@ namespace FiveMoveMurderFest
             Console.Write("Connecting to SQL Server ... ");
             try
             {
-                string serverIp = "sql143.main-hosting.eu";
+                string serverIp = "";
                 string username = "";
                 string password = "";
                 string databaseName = "";
@@ -612,9 +615,40 @@ namespace FiveMoveMurderFest
 
         }
         /**
+         * <summary> A utility function to paly a sound</summary> <param name="type"> The type of sound. 1=move 2=shoot</param>
+         * 
+         */
+        private void playSound(int type)
+        {
+            String name = "";
+            if (type == 1)
+            {
+                name = "move";
+            }else if (type == 2)
+            {
+                name = "shoot";
+            }
+            if (type != 0)
+            {
+                name = "Audio/" + name + ".wav";
+                Console.Write("\n  Playing " + name +"\n");
+                try
+                {
+                    SoundPlayer simpleSound = new SoundPlayer(@name);
+                    simpleSound.Play();
+                }
+                catch (Exception e)
+                {
+                    Console.Write("File error when palying music : " + e.Message + "\n");
+                }
+            }
+            
+            
+        }
+        /**
          * <summary> Listner class tat handles and stored 'Command strings', and they changes they produce, drawing any required.<para/> CommandStrings are built in <see cref="PainterForm_MouseDown">Mouse down</see></summary>
          */
-        private void button2_Click(object sender,EventArgs e)
+        private async void button2_Click(object sender,EventArgs e)
         {
 
 
@@ -633,6 +667,7 @@ namespace FiveMoveMurderFest
                      */
                     if (moveCommands[i].Substring(0, 1).Equals("M"))
                     {
+                        audioQueue[Int32.Parse(moveCommands[i].Substring(1, 1))] = 1;
                         Console.Write("Move Commands [" + i + "] is " + moveCommands[i]);
                         Console.Write(" Moving unit " + moveOrder[i] + " to " + moveCommands[i].Substring(2, 4) + " " + moveCommands[i].Substring(6, 4) + "\n");
                         Console.Write(" Moving unit " + moveOrder[i] + " to " + (Int32.Parse(moveCommands[i].Substring(2, 4)) - 25) + " " + (Int32.Parse(moveCommands[i].Substring(6, 4)) - 25));
@@ -645,6 +680,7 @@ namespace FiveMoveMurderFest
                      */
                     else if (moveCommands[i].Substring(0, 1).Equals("K"))
                     {
+                        audioQueue[Int32.Parse(moveCommands[i].Substring(1, 1))] = 2;
                         int shotChance = units[moveOrder[i]].acc + rand.Next(100);
                         Console.Write("\n shotchance pre-terrain "+shotChance);
                         int targetTile = 0;
@@ -694,6 +730,11 @@ namespace FiveMoveMurderFest
                 Console.Write("End of turn unit " + i + " acting");
                 units[i].acted = false;
                 Console.Write("change occured unit " + i + " acting is set to " + units[i].acted + " \n");
+                await Task.Delay(500);
+                if (audioQueue[i] != 0)
+                {
+                    playSound(audioQueue[i]);
+                }
                 DrawUnits(graphics, i);
                 i++;
 
@@ -701,7 +742,7 @@ namespace FiveMoveMurderFest
             
             //CLEAN UP
             graphics.Dispose();
-
+            audioQueue = new int[maxUnits];
             moveCommands = new String[moveCommands.Length];
             moveOrder = new int[moveOrder.Length];
             lineDraw = new int[lineDraw.Length];
