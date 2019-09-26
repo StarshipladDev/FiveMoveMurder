@@ -5,24 +5,35 @@ It is primarily combat-based, however I plan for campaign managment tools to be 
 # Features(Planned)
 
 *Rudimentry A.I for NPC characters*
+
 *Players declare a move/action for a character. Other side declares counter action, to which non-moved friendlies may again counter-move*
-*ect. ect. All actioning characters roll inititave then perform their actions in initave order ,regardless of wheter it can be done by then*
+*ect. ect.*
+
+*All actioning characters roll inititave then perform their actions in initave order ,regardless of whether it can be done by then*
 *(E.G shooting at unit 'x' when unit x already shot by unit 'y' in same turn)*
 
 # Next Release
+
 Week Ending 6/10/19
+
 *Unit Initative deciding turn order*
+
 *Better looking terrain*
+
 *Basic enemy decision making* 
 
-# Skills developing
+# Skill developing
 
 I plan on this project improving my skills in the following:
 
 >General C#, specifficaly objects, GUI and mouse interactions
+
 >General SQL and database managment
+
 >SQL interaction via client-side programs
+
 >QA and 'client'(I.E my friends) feedback and improvemnt
+
 >Further documentation improvement(This markdown file being an example)
 
 # Installing and Compiling:
