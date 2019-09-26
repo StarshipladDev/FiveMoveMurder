@@ -111,7 +111,6 @@ namespace FiveMoveMurderFest
         private Button button1;
         private Button button2;
         private TextBox textBox1;
-        private Bitmap place;
         private ToolBar toolBar;
         ToolBarButton toolButton1 = new ToolBarButton();
         ToolBarButton toolButton2 = new ToolBarButton();
@@ -183,6 +182,7 @@ namespace FiveMoveMurderFest
             //
             //INITIALIZE INTERACTIVE COMPONENTS - Must be decleared at start of MainForm
             //
+
             this.toolBar = new ToolBar();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
@@ -231,6 +231,7 @@ namespace FiveMoveMurderFest
             // 
             // Form1
             // 
+            this.Icon= new Icon("Pictures/FMMF_icon.ico");
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(windowLength,windowHeight+this.toolBar.Height);
