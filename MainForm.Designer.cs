@@ -38,6 +38,8 @@ namespace FiveMoveMurderFest
     // and http://www.java2s.com/Code/CSharp/2D-Graphics/Draganddraw.htm
     //No longer the case 05/08/2019
     //
+    //Kill Move - 'K' | Shooter index | shot unit index
+    //Move Commnad - 'M| Moving unit's index | 4 digits, leading zeros, x move co-ordinate | 4 digits, leading zeros, Y move co-ordinate
     /**
  * <summary> A Unit is a dynamic actionable object dispalyed in the gameworld. It represetns a character or some other 'alive' thing with agency.<para />
  * Unit has cooridinates and individual stats that can be called for tests. A units' *Image* can be changed and redrawn in the enviroment, and is the representation fo the unit</summary>
@@ -72,6 +74,12 @@ namespace FiveMoveMurderFest
             get { return xposvar; }
             set { xposvar = value; }
         }
+        private int teamvar;
+        public int team
+        {
+            get { return teamvar; }
+            set { teamvar = value; }
+        }
         private int yposvar;
         public int ypos
         {
@@ -85,7 +93,7 @@ namespace FiveMoveMurderFest
          * <param name="x">The X-coordiante the unit will start in</param>
          * <param name="y"> The Y-coordiante the unit will start in</param>
          */
-        public Unit(Bitmap image, int x, int y)
+        public Unit(Bitmap image, int x, int y,int team)
         {
             this.acc = 50;
             this.dead = false;
@@ -93,6 +101,7 @@ namespace FiveMoveMurderFest
             this.attatchedImage = image;
             this.xpos = x;
             this.ypos = y;
+            this.team = team;
         }
 
     }
@@ -246,16 +255,29 @@ namespace FiveMoveMurderFest
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PainterForm_MouseUp);
             this.ResumeLayout(false);
             this.PerformLayout();
-            Graphics g = this.CreateGraphics();
-            DrawTerrain(g,ammount);
-            g.Dispose();
+            this.Shown += new System.EventHandler(this.MainForm_Load); 
         }
         #endregion
-        #region Listners
         /**
-         * <summary>button1_Click deals with the SQL loading of several variables from an SQL database. It then dispalys output text to a console and textbox and draws </sumary>
-         */
-        private void button1_Click(object sender, EventArgs e)
+ * <summary>Draws terrain once window of applciation is shown subscribed to the 'shown' method group </sumary>
+ */
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            Application.DoEvents();
+            using (Graphics g = CreateGraphics())
+            {
+
+                DrawTerrain(g, ammount);
+                g.Dispose();
+            }
+    
+
+            }
+#region Listners
+/**
+ * <summary>button1_Click deals with the SQL loading of several variables from an SQL database. It then dispalys output text to a console and textbox and draws </sumary>
+ */
+private void button1_Click(object sender, EventArgs e)
         {
             textBox1.Text = "Running";
             /* Reduntent builder code for non-mysql
@@ -309,7 +331,7 @@ namespace FiveMoveMurderFest
                         if (currentUnits < units.Length)
                         {
                             Console.Write("\n Building unit with image location "+ "Pictures/" + name + ".png");
-                            units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), xpos, ypos+this.toolBar.Height);
+                            units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), xpos, ypos+this.toolBar.Height,1);
                             currentUnits++;
                         }
                         
@@ -406,7 +428,7 @@ namespace FiveMoveMurderFest
                     if ((e.X > units[i].xpos && e.X < units[i].xpos + 51) && (e.Y > units[i].ypos && e.Y < units[i].ypos + 51))
                     {
                         Console.Write("Unit "+i+ " is selected and acted is " +units[i].acted+"\n \n");
-                        if (units[i].acted == false)
+                        if (units[i].acted == false && units[i].team==1)
                         {
                             selectedUnit = i;
                             Console.Write("Unit " + i + " acted " + units[i].acted);
@@ -553,20 +575,97 @@ namespace FiveMoveMurderFest
             graphics.Dispose();
         }
         /**
-         * <summary>Utility method to handle any clicks on the toolbar. Checks aganst the button's 'Name' value</summary>
-         */
-        private void toolBar_ButtonClick(object sender, ToolBarButtonClickEventArgs e)
+        * <summary>actionEnemy(int unit):
+        * Randomizes an action, then has the passed unit (an index in the 'units' array) perform that action if not dead, updating details similar to <see cref="button2_Click"/></see> 
+        * <param name="unit">The index of the unit object in the 'units' array that should be passed. This is the unit that will be actioned</param>
+        * 
+        * </summary>
+        */
+        //Kill Move - 'K' | Shooter index | shot unit index
+        //Move Commnad - 'M| Moving unit's index | 4 digits, leading zeros, x move co-ordinate | 4 digits, leading zeros, Y move co-ordinate
+        private String actionEnemy(int unit)
+        {
+            if (units[unit].dead == true)
+            {
+                return "EXIT";
+            }
+            else
+            {
+                int actionTaken = rand.Next(2) +1;
+                switch (actionTaken) {
+                    //Shoot at nearest team 1 unit
+                    case 1:
+                        int i = 0, bestDif = windowHeight+windowLength, bestUnit = -1;
+                        while (i < currentUnits)
+                        {
+                            int diffrence = 0, target = -1;
+                            if (units[i].team == 1)
+                            {
+
+                                diffrence = units[unit].xpos - units[i].ypos;
+                                if (diffrence < 0)
+                                {
+                                    actionTaken = actionTaken * -1;
+                                }
+                                actionTaken = units[unit].ypos - units[i].ypos;
+                                if (actionTaken < 0)
+                                {
+                                    actionTaken =actionTaken *  -1;
+                                }
+                                diffrence = diffrence + actionTaken;
+                                Console.Write("dif end result" + diffrence +"comapred to "+bestDif+"\n");
+                                if (bestDif > diffrence)
+                                {
+                                    bestUnit = i;
+                                    bestDif = diffrence;
+                                }
+                                actionTaken = 1;
+                            }
+                            i++;
+                        }
+                        if (bestUnit != -1) {
+                            return "K" + unit + bestUnit+"\n";
+                        }
+                        else
+                        {
+
+                            return "EXIT";
+                        }
+                        break;
+
+                    case 2:
+                        return "M"+unit+rand.Next(windowLength-50).ToString("D4")+( rand.Next(windowHeight - 50)+toolBar.Height).ToString("D4") + "\n";
+                        break;
+
+                    default:
+                        return "EXIT";
+                        Console.Write("\nError hit with console\n");
+                        break;
+
+
+                }
+            }
+
+        }
+            /**
+             * <summary>Utility method to handle any clicks on the toolbar. Checks aganst the button's 'Name' value</summary>
+             */
+
+            private void toolBar_ButtonClick(object sender, ToolBarButtonClickEventArgs e)
         {
             String eName = e.Button.Text;
-            String name = "";
+            String name = "Default";
+            int team = 1;
             Console.Write("\n"+eName+" \n ------\n");
             if (e.Button == toolButton1)
             {
                     name = "Hero1";
+                    team = 1;
             }
             else if (e.Button == toolButton2 )
             {
                 name = "BadMan1";
+                team = 2;
             }
             else if(currentUnits > 0)
             {
@@ -603,10 +702,10 @@ namespace FiveMoveMurderFest
                     }
                 }
             }
-            if (currentUnits < units.Length && ! name.Equals("Default"))
+            if ((currentUnits < units.Length && ! name.Equals("Default")))
             {
                 Console.Write("\n Building unit with image location " + "Pictures/" + name + ".png");
-                units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), rand.Next(windowLength - 50), rand.Next(windowHeight - 50) + this.toolBar.Height);
+                units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), rand.Next(windowLength - 50), rand.Next(windowHeight - 50) + this.toolBar.Height,team);
                 Graphics graphics = CreateGraphics();
                 Console.Write("\n Drawing unit");
                 DrawUnits(graphics, currentUnits);
@@ -657,16 +756,33 @@ namespace FiveMoveMurderFest
             Graphics graphics = CreateGraphics();
             graphics.Clear(Color.White);
             DrawTerrain(graphics,ammount);
+            Console.Write("\n acting unit is " + actingUnit);
             int i = 0;
+            while (i < currentUnits)
+            {
+                if (units[i].team == 2)
+                {
+                    moveCommands[actingUnit] = actionEnemy(i);
+
+                    Console.Write("\n A.I command is" + moveCommands[actingUnit] + " | acting unit is " + actingUnit);
+                    actingUnit++;
+                }
+                i++;
+            }
+
+            i = 0;
             while (i < actingUnit){
                 Console.Write("MoveOrder[" + i + "] is " + moveOrder[i]);
                 if (! units[moveOrder[i]].dead)
                 {
-
+                    if (moveCommands[i].Equals("EXIT"))
+                    {
+                        Console.Write(" \n Invalid commnad \n");
+                    }
                     /*
                      * MOVE COMMAND
                      */
-                    if (moveCommands[i].Substring(0, 1).Equals("M"))
+                    else if (moveCommands[i].Substring(0, 1).Equals("M"))
                     {
                         audioQueue[Int32.Parse(moveCommands[i].Substring(1, 1))] = 1;
                         Console.Write("Move Commands [" + i + "] is " + moveCommands[i]);
