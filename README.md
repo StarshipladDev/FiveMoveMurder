@@ -12,11 +12,13 @@ It is primarily combat-based, however I plan for campaign managment tools to be 
 *All actioning characters roll inititave then perform their actions in initave order ,regardless of whether it can be done by then*
 *(E.G shooting at unit 'x' when unit x already shot by unit 'y' in same turn)*
 
-# Next Release
+# Next Update
 
-Week Ending 6/10/19
+Week Ending 20/10/19
 
-*Unit Initative deciding turn order*
+# Next Build
+
+Week Ending 03/11/19
 
 *Better looking terrain*
 
