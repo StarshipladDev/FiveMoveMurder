@@ -62,6 +62,12 @@ namespace FiveMoveMurderFest
             get { return actedVar; }
             set { actedVar = value; }
         }
+        private int initiativeVar;
+        public int init
+        {
+            get { return initiativeVar; }
+            set { initiativeVar = value; }
+        }
         private bool deadvar;
         public bool dead
         {
@@ -93,7 +99,7 @@ namespace FiveMoveMurderFest
          * <param name="x">The X-coordiante the unit will start in</param>
          * <param name="y"> The Y-coordiante the unit will start in</param>
          */
-        public Unit(Bitmap image, int x, int y,int team)
+        public Unit(Bitmap image, int x, int y,int team,int init)
         {
             this.acc = 50;
             this.dead = false;
@@ -102,6 +108,7 @@ namespace FiveMoveMurderFest
             this.xpos = x;
             this.ypos = y;
             this.team = team;
+            this.init = init; ;
         }
 
     }
@@ -115,7 +122,7 @@ namespace FiveMoveMurderFest
 
         private int windowHeight = 450;
         private int windowLength = 800;
-        static private int maxUnits = 5;
+        static private int maxUnits = 10;
         //Interactive components
         private Button button1;
         private Button button2;
@@ -204,7 +211,7 @@ namespace FiveMoveMurderFest
             this.toolBar.Size = new System.Drawing.Size(windowLength, 10);
             this.toolButton1.Text = "New Hero Unit";
             this.toolButton2.Text = "New Bad Unit";
-            this.toolButton3.Text = "CHose Image for latest unit";
+            this.toolButton3.Text = "Choose Image For Latest Unit";
             this.toolBar.Buttons.Add(toolButton1);
             this.toolBar.Buttons.Add(toolButton2);
             this.toolBar.Buttons.Add(toolButton3);
@@ -259,8 +266,38 @@ namespace FiveMoveMurderFest
         }
         #endregion
         /**
- * <summary>Draws terrain once window of applciation is shown subscribed to the 'shown' method group </sumary>
- */
+         * <summary> Utility method to sort units by initiative values, based on command strings passed
+         * </summary>
+         * 
+         * <returns>A sorted String of move commands <see cref="actionEnemy"></see></returns>
+         * <param name="moveCommandsTemp">The unsorted string of Move commands <see cref="actionEnemy"></see></param>
+         * 
+         */
+        private string[] sortMoves(String[] moveCommandsTemp)
+        {
+            int i = 0;
+            while (i< moveCommandsTemp.Length && moveCommandsTemp[i] != null)
+            {
+                Console.Write("\n sorting " + i +" with ");
+                int f = i;
+                while (f < moveCommandsTemp.Length-1 && moveCommandsTemp[f+1] != null)
+                {
+                    Console.Write(f);
+                    if (units[Int32.Parse(moveCommandsTemp[f].Substring(1,1))].init > units[Int32.Parse(moveCommandsTemp[f+1].Substring(1, 1))].init)
+                    {
+                        String temp = moveCommandsTemp[f+1];
+                        moveCommandsTemp[f + 1] = moveCommandsTemp[f];
+                        moveCommandsTemp[f] = temp;
+                    }
+                    f++;
+                }
+                i++;
+            }
+            return moveCommandsTemp;
+        }
+        /**
+    * <summary>Draws terrain once window of applciation is shown subscribed to the 'shown' method group </summary>
+    */
         private void MainForm_Load(object sender, EventArgs e)
         {
             Application.DoEvents();
@@ -275,11 +312,12 @@ namespace FiveMoveMurderFest
             }
 #region Listners
 /**
- * <summary>button1_Click deals with the SQL loading of several variables from an SQL database. It then dispalys output text to a console and textbox and draws </sumary>
+ * <summary>button1_Click deals with the SQL loading of several variables from an SQL database. It then dispalys output text to a console and textbox and draws </summary>
  */
 private void button1_Click(object sender, EventArgs e)
         {
             textBox1.Text = "Running";
+
             /* Reduntent builder code for non-mysql
             SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
             builder.DataSource = "";
@@ -331,7 +369,7 @@ private void button1_Click(object sender, EventArgs e)
                         if (currentUnits < units.Length)
                         {
                             Console.Write("\n Building unit with image location "+ "Pictures/" + name + ".png");
-                            units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), xpos, ypos+this.toolBar.Height,1);
+                            units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), xpos, ypos+this.toolBar.Height,1,rand.Next(3)+1);
                             currentUnits++;
                         }
                         
@@ -587,11 +625,12 @@ private void button1_Click(object sender, EventArgs e)
         {
             if (units[unit].dead == true)
             {
-                return "EXIT";
+                return "E" + unit;
             }
             else
             {
                 int actionTaken = rand.Next(2) +1;
+                Console.Write("\n action taken is generated as "+actionTaken);
                 switch (actionTaken) {
                     //Shoot at nearest team 1 unit
                     case 1:
@@ -629,7 +668,7 @@ private void button1_Click(object sender, EventArgs e)
                         else
                         {
 
-                            return "EXIT";
+                            return "E"+unit;
                         }
                         break;
 
@@ -638,7 +677,7 @@ private void button1_Click(object sender, EventArgs e)
                         break;
 
                     default:
-                        return "EXIT";
+                        return "E" + unit; ;
                         Console.Write("\nError hit with console\n");
                         break;
 
@@ -705,7 +744,7 @@ private void button1_Click(object sender, EventArgs e)
             if ((currentUnits < units.Length && ! name.Equals("Default")))
             {
                 Console.Write("\n Building unit with image location " + "Pictures/" + name + ".png");
-                units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), rand.Next(windowLength - 50), rand.Next(windowHeight - 50) + this.toolBar.Height,team);
+                units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), rand.Next(windowLength - 50), rand.Next(windowHeight - 50) + this.toolBar.Height,team, rand.Next(3) + 1);
                 Graphics graphics = CreateGraphics();
                 Console.Write("\n Drawing unit");
                 DrawUnits(graphics, currentUnits);
@@ -752,32 +791,44 @@ private void button1_Click(object sender, EventArgs e)
         {
 
 
-            
             Graphics graphics = CreateGraphics();
             graphics.Clear(Color.White);
             DrawTerrain(graphics,ammount);
             Console.Write("\n acting unit is " + actingUnit);
             int i = 0;
+            i = 0;
+            while (i < actingUnit)
+            {
+                Console.Write("\n Pre-muddle, Unit " + moveCommands[i].Substring(1, 1) + "with initiative "+units[Int32.Parse(moveCommands[i].Substring(1, 1))].init + " goes next ");
+                i++;
+            }
+            i = 0;
             while (i < currentUnits)
             {
                 if (units[i].team == 2)
                 {
                     moveCommands[actingUnit] = actionEnemy(i);
-
-                    Console.Write("\n A.I command is" + moveCommands[actingUnit] + " | acting unit is " + actingUnit);
+                    Console.Write("\n A.I command added and it is" + moveCommands[actingUnit] + " | acting unit is " + i);
                     actingUnit++;
                 }
                 i++;
             }
-
+            moveCommands = sortMoves(moveCommands);
             i = 0;
-            while (i < actingUnit){
-                Console.Write("MoveOrder[" + i + "] is " + moveOrder[i]);
-                if (! units[moveOrder[i]].dead)
+            while (i < actingUnit)
+            {
+                Console.Write("\n Post-muddle, Unit " + moveCommands[i].Substring(1, 1) + "with initiative " + units[Int32.Parse(moveCommands[i].Substring(1, 1))].init + " goes next ");
+                i++;
+            }
+            i = actingUnit-1;
+            while (i >= 0){
+                int currentActingUnit = Int32.Parse(moveCommands[i].Substring(1, 1));
+                Console.Write("MoveOrder[" + i + "] is \t" + moveCommands[i]);
+                if (! units[currentActingUnit].dead)
                 {
-                    if (moveCommands[i].Equals("EXIT"))
+                    if (moveCommands[i].Substring(0,1).Equals("E"))
                     {
-                        Console.Write(" \n Invalid commnad \n");
+                        Console.Write(" \n Exit Command \n");
                     }
                     /*
                      * MOVE COMMAND
@@ -785,12 +836,11 @@ private void button1_Click(object sender, EventArgs e)
                     else if (moveCommands[i].Substring(0, 1).Equals("M"))
                     {
                         audioQueue[Int32.Parse(moveCommands[i].Substring(1, 1))] = 1;
-                        Console.Write("Move Commands [" + i + "] is " + moveCommands[i]);
-                        Console.Write(" Moving unit " + moveOrder[i] + " to " + moveCommands[i].Substring(2, 4) + " " + moveCommands[i].Substring(6, 4) + "\n");
-                        Console.Write(" Moving unit " + moveOrder[i] + " to " + (Int32.Parse(moveCommands[i].Substring(2, 4)) - 25) + " " + (Int32.Parse(moveCommands[i].Substring(6, 4)) - 25));
-                        units[moveOrder[i]].xpos = Int32.Parse(moveCommands[i].Substring(2, 4)) - 25;
-                        units[moveOrder[i]].ypos =( Int32.Parse(moveCommands[i].Substring(6, 4)) - 25)+this.toolBar.Height;
-                        Console.Write("Unit deets are " + units[moveOrder[i]].xpos + "," + units[moveOrder[i]].ypos);
+                        Console.Write(" Moving unit " + currentActingUnit + " to " + moveCommands[i].Substring(2, 4) + " " + moveCommands[i].Substring(6, 4) + "\n");
+                        Console.Write(" Moving unit " + currentActingUnit + " to " + (Int32.Parse(moveCommands[i].Substring(2, 4)) - 25) + " " + (Int32.Parse(moveCommands[i].Substring(6, 4)) - 25));
+                        units[currentActingUnit].xpos = Int32.Parse(moveCommands[i].Substring(2, 4)) - 25;
+                        units[currentActingUnit].ypos =( Int32.Parse(moveCommands[i].Substring(6, 4)) - 25)+this.toolBar.Height;
+                        Console.Write("Unit deets are " + units[currentActingUnit].xpos + "," + units[currentActingUnit].ypos);
                     }
                     /*
                      * SHOOT COMMAND
@@ -798,7 +848,7 @@ private void button1_Click(object sender, EventArgs e)
                     else if (moveCommands[i].Substring(0, 1).Equals("K"))
                     {
                         audioQueue[Int32.Parse(moveCommands[i].Substring(1, 1))] = 2;
-                        int shotChance = units[moveOrder[i]].acc + rand.Next(100);
+                        int shotChance = units[currentActingUnit].acc + rand.Next(100);
                         Console.Write("\n shotchance pre-terrain "+shotChance);
                         int targetTile = 0;
                         targetTile = units[Int32.Parse(moveCommands[i].Substring(2, 1))].xpos / (windowLength / ammount);
@@ -837,9 +887,7 @@ private void button1_Click(object sender, EventArgs e)
                         Console.Write("Command error");
                     }
                 }
-                i++;
-
-
+                i--;
             }
             i = 0;
             while (i < currentUnits)
