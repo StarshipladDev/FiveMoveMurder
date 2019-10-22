@@ -14,7 +14,7 @@ It is primarily combat-based, however I plan for campaign managment tools to be 
 
 # Next Update
 
-Week Ending 20/10/19
+Week Ending 03/11/19
 
 # Next Build
 
