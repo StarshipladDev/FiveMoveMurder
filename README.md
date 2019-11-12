@@ -1,28 +1,36 @@
 # FiveMoveMurderFest
+
+[Screenshot]:ScreenShot.PNG
+![This is Alt text][Screenshot]
 This app is a port of a homebrew RPG system (http://www.starshiplad.com/FMMF.pdf) .
 It is primarily combat-based, however I plan for campaign managment tools to be added.
 
+
 # Features(Planned)
 
-*Rudimentry A.I for NPC characters*
-
 *Players declare a move/action for a character. Other side declares counter action, to which non-moved friendlies may again counter-move*
-*ect. ect.*
+
+# Features(Planned)
+
+*Basic A.I for enemy units*
 
 *All actioning characters roll inititave then perform their actions in initave order ,regardless of whether it can be done by then*
 *(E.G shooting at unit 'x' when unit x already shot by unit 'y' in same turn)*
 
 # Next Update
 
-Week Ending 03/11/19
+Week Ending 24/11/19
 
 # Next Build
 
-Week Ending 03/11/19
+Week Ending 24/11/19
 
-*Better looking terrain*
-
-*Basic enemy decision making* 
+* Add MainForm_Load to UML
+* Add sortMoves to UML
+* Add team selector in starshiplad.com/upload.php
+* Bugtest
+* Merge Advanced AI and Master
+* Add basic instructions to README
 
 # Skill developing
 

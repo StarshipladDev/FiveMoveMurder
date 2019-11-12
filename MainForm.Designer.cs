@@ -40,6 +40,9 @@ namespace FiveMoveMurderFest
     //
     //Kill Move - 'K' | Shooter index | shot unit index
     //Move Commnad - 'M| Moving unit's index | 4 digits, leading zeros, x move co-ordinate | 4 digits, leading zeros, Y move co-ordinate
+    //TERRAIN CODES
+    //1 == hills/brown
+    //2 == mountains/ grey
     /**
  * <summary> A Unit is a dynamic actionable object dispalyed in the gameworld. It represetns a character or some other 'alive' thing with agency.<para />
  * Unit has cooridinates and individual stats that can be called for tests. A units' *Image* can be changed and redrawn in the enviroment, and is the representation fo the unit</summary>
@@ -99,7 +102,7 @@ namespace FiveMoveMurderFest
          * <param name="x">The X-coordiante the unit will start in</param>
          * <param name="y"> The Y-coordiante the unit will start in</param>
          */
-        public Unit(Bitmap image, int x, int y,int team,int init)
+        public Unit(Bitmap image, int x, int y, int team, int init)
         {
             this.acc = 50;
             this.dead = false;
@@ -139,8 +142,10 @@ namespace FiveMoveMurderFest
         int[] audioQueue = new int[maxUnits];
         int selectedUnit = -1;
         //Terrain- gridTypeDownRight MUST be a square number
-        static int[] gridTypeDownRight= new int[9] {rand.Next(6)-3, rand.Next(6) - 3, rand.Next(6) - 3,rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3};
+        static int[,] gridTerrainCoords = new int[9, 2];
+        static int[] gridTypeDownRight = new int[9] { rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3, rand.Next(6) - 3 };
         static Color[] terrainColors = new Color[gridTypeDownRight.Length];
+        static Color backgroundLayerColor = Color.FromArgb(255, (Color.White.R - rand.Next(20) - 10) % 255, (Color.White.G - rand.Next(20) - 10) % 255, (Color.White.B - rand.Next(20) - 10) % 255);
         int ammount = (int)Math.Sqrt(gridTypeDownRight.Length);
         //End of Terrain
         int currentUnits = 0;
@@ -170,17 +175,28 @@ namespace FiveMoveMurderFest
         private void SetTerrain()
         {
             int i = 0;
-            while (i<gridTypeDownRight.Length)
+            while (i < gridTypeDownRight.Length)
             {
-                if (gridTypeDownRight[i] == 1)
+                if (gridTypeDownRight[i] == 1 || gridTypeDownRight[i] == 2)
                 {
-                    terrainColors[i] = Color.FromArgb(255, (Color.Brown.R + rand.Next(20) - 10) % 255, (Color.Brown.G + rand.Next(20) - 10) % 255, (Color.Brown.B + rand.Next(20) - 10) % 255);
+                    if (gridTypeDownRight[i] == 1)
+                    {
+                        terrainColors[i] = Color.FromArgb(255, (Color.Brown.R + rand.Next(20) - 10) % 255, (Color.Brown.G + rand.Next(20) - 10) % 255, (Color.Brown.B + rand.Next(20) - 10) % 255);
+
+                    }
+                    else if (gridTypeDownRight[i] == 2)
+                    {
+                        terrainColors[i] = Color.FromArgb(255, (Color.Gray.R + rand.Next(20) - 10) % 255, (Color.Gray.G + rand.Next(20) - 10) % 255, (Color.Gray.B + rand.Next(20) - 10) % 255);
+                    }
+                    gridTerrainCoords[i, 0] = rand.Next(50);
+                    gridTerrainCoords[i, 1] = rand.Next(50);
                 }
-                else if (gridTypeDownRight[i] == 2)
+                else
                 {
-                    terrainColors[i] = Color.FromArgb(255, (Color.Gray.R + rand.Next(20) - 10) % 255, (Color.Gray.G + rand.Next(20) - 10) % 255, (Color.Gray.B + rand.Next(20) - 10) % 255);
+                    gridTypeDownRight[i] = 0;
                 }
-            i++;
+
+                i++;
             }
         }
         /// <summary>
@@ -190,7 +206,7 @@ namespace FiveMoveMurderFest
         private void InitializeComponent()
         {
             /*
-             *   SETIP TERRAIN COLORS
+             *   SETUP TERRAIN COLORS, SETUP TERRAIN CO-ORDINATES
              * 
              */
             SetTerrain();
@@ -229,7 +245,7 @@ namespace FiveMoveMurderFest
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(75,0+this.toolBar.Height);
+            this.textBox1.Location = new System.Drawing.Point(75, 0 + this.toolBar.Height);
             this.textBox1.Name = "textBox1";
             this.textBox1.Text = "Not RUnning";
             this.textBox1.Size = new System.Drawing.Size(180, 23);
@@ -237,7 +253,7 @@ namespace FiveMoveMurderFest
             // 
             // button2- End Turn
             // 
-            this.button2.Location = new System.Drawing.Point(255,-2+ this.toolBar.Height);
+            this.button2.Location = new System.Drawing.Point(255, -2 + this.toolBar.Height);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 0;
@@ -247,10 +263,10 @@ namespace FiveMoveMurderFest
             // 
             // Form1
             // 
-            this.Icon= new Icon("Pictures/FMMF_icon.ico");
+            this.Icon = new Icon("Pictures/FMMF_icon.ico");
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(windowLength,windowHeight+this.toolBar.Height);
+            this.ClientSize = new System.Drawing.Size(windowLength, windowHeight + this.toolBar.Height);
             this.Controls.Add(toolBar);
             Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
@@ -262,7 +278,7 @@ namespace FiveMoveMurderFest
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PainterForm_MouseUp);
             this.ResumeLayout(false);
             this.PerformLayout();
-            this.Shown += new System.EventHandler(this.MainForm_Load); 
+            this.Shown += new System.EventHandler(this.MainForm_Load);
         }
         #endregion
         /**
@@ -276,16 +292,16 @@ namespace FiveMoveMurderFest
         private string[] sortMoves(String[] moveCommandsTemp)
         {
             int i = 0;
-            while (i< moveCommandsTemp.Length && moveCommandsTemp[i] != null)
+            while (i < moveCommandsTemp.Length && moveCommandsTemp[i] != null)
             {
-                Console.Write("\n sorting " + i +" with ");
+                Console.Write("\n sorting " + i + " with ");
                 int f = i;
-                while (f < moveCommandsTemp.Length-1 && moveCommandsTemp[f+1] != null)
+                while (f < moveCommandsTemp.Length - 1 && moveCommandsTemp[f + 1] != null)
                 {
                     Console.Write(f);
-                    if (units[Int32.Parse(moveCommandsTemp[f].Substring(1,1))].init > units[Int32.Parse(moveCommandsTemp[f+1].Substring(1, 1))].init)
+                    if (units[Int32.Parse(moveCommandsTemp[f].Substring(1, 1))].init > units[Int32.Parse(moveCommandsTemp[f + 1].Substring(1, 1))].init)
                     {
-                        String temp = moveCommandsTemp[f+1];
+                        String temp = moveCommandsTemp[f + 1];
                         moveCommandsTemp[f + 1] = moveCommandsTemp[f];
                         moveCommandsTemp[f] = temp;
                     }
@@ -301,20 +317,22 @@ namespace FiveMoveMurderFest
         private void MainForm_Load(object sender, EventArgs e)
         {
             Application.DoEvents();
+
             using (Graphics g = CreateGraphics())
             {
-
+                g.Clear(backgroundLayerColor);
                 DrawTerrain(g, ammount);
+
                 g.Dispose();
             }
-    
 
-            }
-#region Listners
-/**
- * <summary>button1_Click deals with the SQL loading of several variables from an SQL database. It then dispalys output text to a console and textbox and draws </summary>
- */
-private void button1_Click(object sender, EventArgs e)
+
+        }
+        #region Listners
+        /**
+         * <summary>button1_Click deals with the SQL loading of several variables from an SQL database. It then dispalys output text to a console and textbox and draws </summary>
+         */
+        private void button1_Click(object sender, EventArgs e)
         {
             textBox1.Text = "Running";
 
@@ -330,11 +348,11 @@ private void button1_Click(object sender, EventArgs e)
             Console.Write("Connecting to SQL Server ... ");
             try
             {
-                string serverIp = "";
-                string username = "";
-                string password = "";
-                string databaseName = "";
-                textBox1.Text = "Attempting to connect to retreive unit ID "+sQLUnit;
+                string serverIp = "Nope :P";
+                string username = "Nope :P";
+                string password = "Nope :P";
+                string databaseName = "Nope :P";
+                textBox1.Text = "Attempting to connect to retreive unit ID " + sQLUnit;
                 Console.Write("Attempting to connect to retreive unit ID " + sQLUnit);
                 string dbConnectionString = string.Format("server={0};uid={1};pwd={2};database={3};", serverIp, username, password, databaseName);
                 using (MySql.Data.MySqlClient.MySqlConnection conn = new MySql.Data.MySqlClient.MySqlConnection(dbConnectionString))
@@ -351,7 +369,7 @@ private void button1_Click(object sender, EventArgs e)
                     {
 
                         String v = reader.GetString(1);
-                        Console.Write("\n Setting V as name, v is "+v);
+                        Console.Write("\n Setting V as name, v is " + v);
                         Console.Write("\n Testing V as null");
                         if (v == null)
                         {
@@ -363,16 +381,16 @@ private void button1_Click(object sender, EventArgs e)
                         int xpos = reader.GetInt32(2);
                         Console.Write("\n Getting ypos");
                         int ypos = reader.GetInt32(3);
-                        Console.Write("\n Printing String with anme <"+name+">");
+                        Console.Write("\n Printing String with anme <" + name + ">");
                         textBox1.Text = String.Format("{0},{1}\t{2},{3}", reader.GetInt32(0), "|" + name + ".png|", xpos, ypos);
                         //Remeber to add images to resource folder via add new item
                         if (currentUnits < units.Length)
                         {
-                            Console.Write("\n Building unit with image location "+ "Pictures/" + name + ".png");
-                            units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), xpos, ypos+this.toolBar.Height,1,rand.Next(3)+1);
+                            Console.Write("\n Building unit with image location " + "Pictures/" + name + ".png");
+                            units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), xpos, ypos + this.toolBar.Height, 1, rand.Next(3) + 1);
                             currentUnits++;
                         }
-                        
+
                     }
                     Console.Write("\n CLosing reader");
                     sQLUnit++;
@@ -382,7 +400,7 @@ private void button1_Click(object sender, EventArgs e)
             }
             catch (Exception er)
             {
-                Console.Write("\n Error:"+er.Message);
+                Console.Write("\n Error:" + er.Message);
                 textBox1.Text += "Error";
             }
 
@@ -406,15 +424,15 @@ private void button1_Click(object sender, EventArgs e)
             if (line)
             {
                 bool killed = false;
-                lineDraw[actingUnit * 4] =units[selectedUnit].xpos + 25;
-                lineDraw[(actingUnit * 4)+1] = units[selectedUnit].ypos + 25;
+                lineDraw[actingUnit * 4] = units[selectedUnit].xpos + 25;
+                lineDraw[(actingUnit * 4) + 1] = units[selectedUnit].ypos + 25;
                 lineDraw[(actingUnit * 4) + 2] = e.X;
                 lineDraw[(actingUnit * 4) + 3] = e.Y;
                 Console.Write("\n Set Values as " + lineDraw[actingUnit * 4] + " " + lineDraw[(actingUnit * 4) + 1] + " " + lineDraw[(actingUnit * 4) + 2] + " " + lineDraw[(actingUnit * 4) + 3]);
                 int i = 0;
                 while (i < currentUnits)
                 {
-                    
+
                     if (i != selectedUnit)
                     {
 
@@ -422,10 +440,10 @@ private void button1_Click(object sender, EventArgs e)
                          * Kill code
 
                         */
-                        if ((e.X > units[i].xpos && e.X < units[i].xpos + 51) && (e.Y> units[i].ypos && e.Y < units[i].ypos + 51))
+                        if ((e.X > units[i].xpos && e.X < units[i].xpos + 51) && (e.Y > units[i].ypos && e.Y < units[i].ypos + 51))
                         {
                             Console.Write("\n moveCommands=" + "K" + moveCommands[actingUnit].Substring(1, 1) + i + "\n");
-                            moveCommands[actingUnit] = ("K" + moveCommands[actingUnit].Substring(1,1)+ i);
+                            moveCommands[actingUnit] = ("K" + moveCommands[actingUnit].Substring(1, 1) + i);
                             killed = true;
                             i = 100000;
 
@@ -445,9 +463,9 @@ private void button1_Click(object sender, EventArgs e)
                 if (killed == false)
                 {
 
-                    Console.Write("\n moveCommands=" + moveCommands[actingUnit] + e.X.ToString("D4") + e.Y.ToString("D4") +"\n");
-                    moveCommands[actingUnit] = (moveCommands[actingUnit]+e.X.ToString("D4")+e.Y.ToString("D4"));
-                    
+                    Console.Write("\n moveCommands=" + moveCommands[actingUnit] + e.X.ToString("D4") + e.Y.ToString("D4") + "\n");
+                    moveCommands[actingUnit] = (moveCommands[actingUnit] + e.X.ToString("D4") + e.Y.ToString("D4"));
+
                     /*MOVE CODE
                     */
 
@@ -462,11 +480,11 @@ private void button1_Click(object sender, EventArgs e)
                 int i = 0;
                 while (i < currentUnits)
                 {
-                    Console.Write("\n \n Mouse x,y " + e.X + " " + e.Y + " , unit coords " + units[i].xpos + " " + units[i].ypos );
+                    Console.Write("\n \n Mouse x,y " + e.X + " " + e.Y + " , unit coords " + units[i].xpos + " " + units[i].ypos);
                     if ((e.X > units[i].xpos && e.X < units[i].xpos + 51) && (e.Y > units[i].ypos && e.Y < units[i].ypos + 51))
                     {
-                        Console.Write("Unit "+i+ " is selected and acted is " +units[i].acted+"\n \n");
-                        if (units[i].acted == false && units[i].team==1)
+                        Console.Write("Unit " + i + " is selected and acted is " + units[i].acted + "\n \n");
+                        if (units[i].acted == false && units[i].team == 1)
                         {
                             selectedUnit = i;
                             Console.Write("Unit " + i + " acted " + units[i].acted);
@@ -477,7 +495,7 @@ private void button1_Click(object sender, EventArgs e)
                             moveOrder[actingUnit] = i;
                             Console.Write("\n MoveOrder[" + actingUnit + "] Set to " + i);
                             Console.Write("\n moveCommands=" + "M" + i + "\n");
-                            
+
                         }
                         i = 100000;
 
@@ -497,31 +515,41 @@ private void button1_Click(object sender, EventArgs e)
         /**
          * <summary>Utility method to draw all terrain as their respective colros based on terrain type</summary>
          */
-        private void DrawTerrain(Graphics graphics,int ammount)
+        private void DrawTerrain(Graphics graphics, int ammount)
         {
             int i = 0;
             /* 
             *DRAW TERRAIN 
             * 
             */
-            //Ammount in a row of grid
+            //Ammount is the tiles in a row of the grid
+            //Goes Across then Down
             while (i < ammount)
             {
                 int f = 0;
                 while (f < ammount)
                 {
-                    if (gridTypeDownRight[(i * ammount) + f] >0)
+                    int currentOneDIndex = (i * ammount) + f;
+                    if (gridTypeDownRight[(i * ammount) + f] > 0)
                     {
                         SolidBrush brush = null;
-                        if (gridTypeDownRight[(i * ammount) + f] == 1)
+                        Bitmap terrainImage = null;
+                        if (gridTypeDownRight[currentOneDIndex] == 1)
                         {
-                            brush = new SolidBrush(terrainColors[(i * ammount) + f]);
+                            terrainImage = new Bitmap("Pictures/Mountain Overlay.png");
+                            brush = new SolidBrush(terrainColors[currentOneDIndex]);
                         }
-                        else if (gridTypeDownRight[(i * ammount) + f] == 2)
+                        else if (gridTypeDownRight[currentOneDIndex] == 2)
                         {
-                            brush = new SolidBrush(terrainColors[(i * ammount) + f]);
+                            terrainImage = new Bitmap("Pictures/WallOverlay.png");
+                            brush = new SolidBrush(terrainColors[currentOneDIndex]);
                         }
                         graphics.FillRectangle(brush, new RectangleF(i * (windowLength / ammount), f * (windowHeight / ammount) + this.toolBar.Height, windowLength / ammount, windowHeight / ammount));
+                        if (terrainImage != null)
+                        {
+                            graphics.DrawImage(terrainImage, (i * (windowLength / ammount)) + gridTerrainCoords[currentOneDIndex, 0], (f * (windowHeight / ammount)) + gridTerrainCoords[currentOneDIndex, 1] + this.toolBar.Height);
+                        }
+
                     }
                     f++;
                 }
@@ -542,7 +570,7 @@ private void button1_Click(object sender, EventArgs e)
         /**
          * <summary>Utility method to draw the lines between all actioned units and their action target</summary>
          */
-        private void DrawLines(Graphics graphics,Color drawColor)
+        private void DrawLines(Graphics graphics, Color drawColor)
         {
 
             int i = 0;
@@ -585,9 +613,9 @@ private void button1_Click(object sender, EventArgs e)
             {
                 if (line)
                 {
-                   
+
                     drawColor = Color.Red;
-                    graphics.Clear(Color.White);
+                    graphics.Clear(backgroundLayerColor);
                     /* 
                     *DRAW TERRAIN 
                     * 
@@ -600,13 +628,13 @@ private void button1_Click(object sender, EventArgs e)
                     int i = 0;
                     while (i < currentUnits)
                     {
-                        DrawUnits(graphics,i);
+                        DrawUnits(graphics, i);
                         i++;
 
                     }
                     DrawLines(graphics, drawColor);
                     graphics.DrawLine(new Pen(drawColor), units[selectedUnit].xpos + 25, units[selectedUnit].ypos + 25, e.X, e.Y);
-                    
+
 
                 }
             }
@@ -625,88 +653,129 @@ private void button1_Click(object sender, EventArgs e)
         {
             if (units[unit].dead == true)
             {
+                Console.Write("Bot is dead, cannot action \n");
                 return "E" + unit;
             }
             else
             {
-                int actionTaken = rand.Next(2) +1;
-                Console.Write("\n action taken is generated as "+actionTaken);
-                switch (actionTaken) {
-                    //Shoot at nearest team 1 unit
-                    case 1:
-                        int i = 0, bestDif = windowHeight+windowLength, bestUnit = -1;
-                        while (i < currentUnits)
+                String returnString = "E" + unit;
+                //Cascading priority -> Get to empty cover(mountain),get to empty cover (hill), shoot at hero
+                Console.Write("Setting bots current grid index in gridTypeDownRight \n");
+                int currentGridIndex = (units[unit].xpos / (windowLength/ammount)) * ammount + ((units[unit].ypos / (windowHeight / ammount)));
+                int currentGridType = gridTypeDownRight[currentGridIndex];
+                Console.Write("bot's currentGridType is "+ currentGridType+" at index "+ currentGridIndex + "\n");
+                //Will move if on bad cover or 1/10 chance
+                if (currentGridType == 0 || rand.Next(10)==0)
+                {
+                    Console.Write("Bot is Moving\n");
+                    int gridSearch = 0;
+                    int coverGrids = 0;
+                    while (gridSearch < gridTypeDownRight.Length)
+                    {
+                        if (gridTypeDownRight[gridSearch] != 0)
                         {
-                            int diffrence = 0, target = -1;
-                            if (units[i].team == 1)
+                            coverGrids++;
+                        }
+                        gridSearch++;
+                    }
+                    Console.Write("Bot Found" + coverGrids +" covered grids\n");
+                    // If no cover grids, move randomly 30% of the time
+                    if (coverGrids == 0 && rand.Next(10) < 3)
+                    {
+                        Console.Write("Bot Moving randomly\n");
+                        returnString = "M" + unit + rand.Next(windowLength - 50).ToString("D4") + (rand.Next(windowHeight - 50) + toolBar.Height).ToString("D4") + "\n";
+                    }
+                    else
+                    {
+                        Console.Write("Bot Moving to cover\n");
+                        gridSearch = 0;
+                        while (gridSearch < gridTypeDownRight.Length)
+                        {
+                            Console.Write("Searching "+gridSearch+"/"+gridTypeDownRight.Length+". Grid type is"+ gridTypeDownRight[gridSearch]);
+                            // 1 in 'n' chance of moving to covered grid, where n is ammount of covered grids
+                            if (gridTypeDownRight[gridSearch] != 0 && rand.Next(coverGrids) == 0)
                             {
-
-                                diffrence = units[unit].xpos - units[i].ypos;
-                                if (diffrence < 0)
-                                {
-                                    actionTaken = actionTaken * -1;
-                                }
-                                actionTaken = units[unit].ypos - units[i].ypos;
-                                if (actionTaken < 0)
-                                {
-                                    actionTaken =actionTaken *  -1;
-                                }
-                                diffrence = diffrence + actionTaken;
-                                Console.Write("dif end result" + diffrence +"comapred to "+bestDif+"\n");
-                                if (bestDif > diffrence)
-                                {
-                                    bestUnit = i;
-                                    bestDif = diffrence;
-                                }
-                                actionTaken = 1;
+                                
+                                Console.Write("Setting  Y move coordinates \n");
+                                int yMove = (gridSearch % ammount) * (windowHeight / ammount) + rand.Next((windowHeight / ammount) - 50 + this.toolBar.Height);
+                                Console.Write(" Y co-ords are "+ yMove+" Setting  X move coordinates \n");
+                                int xMove = (((gridSearch - (gridSearch % ammount)) / ammount) * (windowLength / ammount) )+ rand.Next((windowLength / ammount) - 50);
+                                Console.Write("Bot Moving to cover at grid index "+ gridSearch +" with coordinates"+ xMove+","+yMove+" \n");
+                                returnString = "M" + unit + xMove.ToString("D4") + yMove.ToString("D4") + "\n";
+                                gridSearch = gridTypeDownRight.Length;
                             }
-                            i++;
+                            gridSearch++;
                         }
-                        if (bestUnit != -1) {
-                            return "K" + unit + bestUnit+"\n";
-                        }
-                        else
-                        {
-
-                            return "E"+unit;
-                        }
-                        break;
-
-                    case 2:
-                        return "M"+unit+rand.Next(windowLength-50).ToString("D4")+( rand.Next(windowHeight - 50)+toolBar.Height).ToString("D4") + "\n";
-                        break;
-
-                    default:
-                        return "E" + unit; ;
-                        Console.Write("\nError hit with console\n");
-                        break;
-
+                    }
+                    Console.Write("Bot di not move \n");
 
                 }
+                // Shoot if in cover at closest target & no movment made prior
+                if (returnString.ToCharArray()[0] == 'E')
+                {
+                    Console.Write("Bot is shooting \n");
+                    int i = 0, bestDif = windowHeight + windowLength, bestUnit = -1;
+                    while (i < currentUnits)
+                    {
+                        int diffrence = 0, target = -1;
+                        if (units[i].team == 1 && units[i].dead==false)
+                        {
+
+                            diffrence = units[unit].xpos - units[i].xpos;
+                            if (diffrence < 0)
+                            {
+                                diffrence = diffrence * -1;
+                            }
+                            int actionTaken = units[unit].ypos - units[i].ypos;
+                            if (actionTaken < 0)
+                            {
+                                actionTaken = actionTaken * -1;
+                            }
+                            diffrence = diffrence + actionTaken;
+                            Console.Write("diffrence between new target & old target is" + diffrence + "comapred to " + bestDif + "\n");
+                            if (bestDif > diffrence)
+                            {
+                                bestUnit = i;
+                                bestDif = diffrence;
+                            }
+                            actionTaken = 1;
+                        }
+                        i++;
+                    }
+                    if (bestUnit != -1)
+                    {
+                        returnString= "K" + unit + bestUnit + "\n";
+                    }
+                    else
+                    {
+                        Console.Write("Bot had no targets \n");
+                    }
+                }
+                Console.Write("Sending command "+returnString+"\n");
+                return returnString;
             }
-
         }
-            /**
-             * <summary>Utility method to handle any clicks on the toolbar. Checks aganst the button's 'Name' value</summary>
-             */
+        /**
+         * <summary>Utility method to handle any clicks on the toolbar. Checks aganst the button's 'Name' value</summary>
+         */
 
-            private void toolBar_ButtonClick(object sender, ToolBarButtonClickEventArgs e)
+        private void toolBar_ButtonClick(object sender, ToolBarButtonClickEventArgs e)
         {
             String eName = e.Button.Text;
             String name = "Default";
             int team = 1;
-            Console.Write("\n"+eName+" \n ------\n");
+            Console.Write("\n" + eName + " \n ------\n");
             if (e.Button == toolButton1)
             {
-                    name = "Hero1";
-                    team = 1;
+                name = "Hero1";
+                team = 1;
             }
-            else if (e.Button == toolButton2 )
+            else if (e.Button == toolButton2)
             {
                 name = "BadMan1";
                 team = 2;
             }
-            else if(currentUnits > 0)
+            else if (currentUnits > 0)
             {
 
                 name = "Default";
@@ -721,9 +790,9 @@ private void button1_Click(object sender, EventArgs e)
                     if (openFileDialog.ShowDialog() == DialogResult.OK)
                     {
                         String filePath = openFileDialog.FileName;
-                        Console.Write("\n filepath is "+filePath);
+                        Console.Write("\n filepath is " + filePath);
                         image = new Bitmap(filePath);
-                        if(image.Height>50 || image.Width > 50)
+                        if (image.Height > 50 || image.Width > 50)
                         {
                             textBox1.Text = "File can only be up to 50x50 in size";
                         }
@@ -732,19 +801,19 @@ private void button1_Click(object sender, EventArgs e)
 
                             units[currentUnits - 1].attatchedImage = image;
                             Graphics graphics = CreateGraphics();
-                            graphics.Clear(Color.White);
+                            graphics.Clear(backgroundLayerColor);
                             Console.Write("\n Drawing unit");
-                            DrawTerrain(graphics,ammount);
+                            DrawTerrain(graphics, ammount);
                             DrawUnits(graphics, currentUnits - 1);
                             graphics.Dispose();
                         }
                     }
                 }
             }
-            if ((currentUnits < units.Length && ! name.Equals("Default")))
+            if ((currentUnits < units.Length && !name.Equals("Default")))
             {
                 Console.Write("\n Building unit with image location " + "Pictures/" + name + ".png");
-                units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), rand.Next(windowLength - 50), rand.Next(windowHeight - 50) + this.toolBar.Height,team, rand.Next(3) + 1);
+                units[currentUnits] = new Unit(new Bitmap("Pictures/" + name + ".png"), rand.Next(windowLength - 50), rand.Next(windowHeight - 50) + this.toolBar.Height, team, rand.Next(3) + 1);
                 Graphics graphics = CreateGraphics();
                 Console.Write("\n Drawing unit");
                 DrawUnits(graphics, currentUnits);
@@ -763,14 +832,15 @@ private void button1_Click(object sender, EventArgs e)
             if (type == 1)
             {
                 name = "move";
-            }else if (type == 2)
+            }
+            else if (type == 2)
             {
                 name = "shoot";
             }
             if (type != 0)
             {
                 name = "Audio/" + name + ".wav";
-                Console.Write("\n  Playing " + name +"\n");
+                Console.Write("\n  Playing " + name + "\n");
                 try
                 {
                     SoundPlayer simpleSound = new SoundPlayer(@name);
@@ -781,25 +851,24 @@ private void button1_Click(object sender, EventArgs e)
                     Console.Write("File error when palying music : " + e.Message + "\n");
                 }
             }
-            
-            
+
+
         }
         /**
          * <summary> Listner class tat handles and stored 'Command strings', and they changes they produce, drawing any required.<para/> CommandStrings are built in <see cref="PainterForm_MouseDown">Mouse down</see></summary>
          */
-        private async void button2_Click(object sender,EventArgs e)
+        private async void button2_Click(object sender, EventArgs e)
         {
 
 
             Graphics graphics = CreateGraphics();
-            graphics.Clear(Color.White);
-            DrawTerrain(graphics,ammount);
+            graphics.Clear(backgroundLayerColor);
+            DrawTerrain(graphics, ammount);
             Console.Write("\n acting unit is " + actingUnit);
             int i = 0;
-            i = 0;
             while (i < actingUnit)
             {
-                Console.Write("\n Pre-muddle, Unit " + moveCommands[i].Substring(1, 1) + "with initiative "+units[Int32.Parse(moveCommands[i].Substring(1, 1))].init + " goes next ");
+                Console.Write("\n Pre-muddle, Unit " + moveCommands[i].Substring(1, 1) + "with initiative " + units[Int32.Parse(moveCommands[i].Substring(1, 1))].init + " goes next ");
                 i++;
             }
             i = 0;
@@ -807,8 +876,9 @@ private void button1_Click(object sender, EventArgs e)
             {
                 if (units[i].team == 2)
                 {
+                    Console.Write("Adding an A.I command for unit "+i+"\n");
                     moveCommands[actingUnit] = actionEnemy(i);
-                    Console.Write("\n A.I command added and it is" + moveCommands[actingUnit] + " | acting unit is " + i);
+                    Console.Write("\n A.I command  successfully added and it is" + moveCommands[actingUnit] + " | acting unit is " + i+"\n");
                     actingUnit++;
                 }
                 i++;
@@ -820,13 +890,14 @@ private void button1_Click(object sender, EventArgs e)
                 Console.Write("\n Post-muddle, Unit " + moveCommands[i].Substring(1, 1) + "with initiative " + units[Int32.Parse(moveCommands[i].Substring(1, 1))].init + " goes next ");
                 i++;
             }
-            i = actingUnit-1;
-            while (i >= 0){
+            i = actingUnit - 1;
+            while (i >= 0)
+            {
                 int currentActingUnit = Int32.Parse(moveCommands[i].Substring(1, 1));
                 Console.Write("MoveOrder[" + i + "] is \t" + moveCommands[i]);
-                if (! units[currentActingUnit].dead)
+                if (!units[currentActingUnit].dead)
                 {
-                    if (moveCommands[i].Substring(0,1).Equals("E"))
+                    if (moveCommands[i].Substring(0, 1).Equals("E"))
                     {
                         Console.Write(" \n Exit Command \n");
                     }
@@ -839,7 +910,7 @@ private void button1_Click(object sender, EventArgs e)
                         Console.Write(" Moving unit " + currentActingUnit + " to " + moveCommands[i].Substring(2, 4) + " " + moveCommands[i].Substring(6, 4) + "\n");
                         Console.Write(" Moving unit " + currentActingUnit + " to " + (Int32.Parse(moveCommands[i].Substring(2, 4)) - 25) + " " + (Int32.Parse(moveCommands[i].Substring(6, 4)) - 25));
                         units[currentActingUnit].xpos = Int32.Parse(moveCommands[i].Substring(2, 4)) - 25;
-                        units[currentActingUnit].ypos =( Int32.Parse(moveCommands[i].Substring(6, 4)) - 25)+this.toolBar.Height;
+                        units[currentActingUnit].ypos = (Int32.Parse(moveCommands[i].Substring(6, 4)) - 25) + this.toolBar.Height;
                         Console.Write("Unit deets are " + units[currentActingUnit].xpos + "," + units[currentActingUnit].ypos);
                     }
                     /*
@@ -849,11 +920,12 @@ private void button1_Click(object sender, EventArgs e)
                     {
                         audioQueue[Int32.Parse(moveCommands[i].Substring(1, 1))] = 2;
                         int shotChance = units[currentActingUnit].acc + rand.Next(100);
-                        Console.Write("\n shotchance pre-terrain "+shotChance);
+                        Console.Write("\n shotchance pre-terrain " + shotChance);
                         int targetTile = 0;
                         targetTile = units[Int32.Parse(moveCommands[i].Substring(2, 1))].xpos / (windowLength / ammount);
                         targetTile = (ammount * targetTile) + units[Int32.Parse(moveCommands[i].Substring(2, 1))].ypos / (windowHeight / ammount);
-                        switch (gridTypeDownRight[targetTile]) {
+                        switch (gridTypeDownRight[targetTile])
+                        {
 
                             case 1:
                                 shotChance -= 10;
@@ -868,10 +940,10 @@ private void button1_Click(object sender, EventArgs e)
                         }
                         Console.Write("\n shotchance post-terrain " + shotChance);
 
-                        if (shotChance>100)
+                        if (shotChance > 100)
                         {
 
-                            units[Int32.Parse(moveCommands[i].Substring(2,1))].attatchedImage = new Bitmap("Pictures/Corpse" + ((rand.Next(100) % 3) + 1) + ".png");
+                            units[Int32.Parse(moveCommands[i].Substring(2, 1))].attatchedImage = new Bitmap("Pictures/Corpse" + ((rand.Next(100) % 3) + 1) + ".png");
                             units[Int32.Parse(moveCommands[i].Substring(2, 1))].dead = true;
                         }
                         else
@@ -904,7 +976,7 @@ private void button1_Click(object sender, EventArgs e)
                 i++;
 
             }
-            
+
             //CLEAN UP
             graphics.Dispose();
             audioQueue = new int[maxUnits];
